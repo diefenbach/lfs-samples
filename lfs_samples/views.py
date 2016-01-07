@@ -122,10 +122,7 @@ def manage_samples_inline(request, product_id, as_string=False, template_name="l
             categories.extend(category.get_all_children())
             filters &= Q(categories__in=categories)
 
-    products = []
-    for temp in Product.objects.filter(filters).exclude(pk__in=samples_ids).exclude(pk=product.pk):
-        if temp.is_sample.exists():
-            products.append(temp)
+    products = Product.objects.filter(filters).exclude(pk__in=samples_ids).exclude(pk=product.pk).exclude(is_sample__isnull=True)
 
     paginator = Paginator(products, s["samples-amount"])
 
