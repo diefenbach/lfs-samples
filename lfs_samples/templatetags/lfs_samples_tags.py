@@ -1,8 +1,9 @@
 from django import template
 from django.template import Library
 
-from .. utils import has_samples
 from .. utils import get_samples
+from .. utils import has_samples
+from .. utils import is_sample as is_sample_util
 register = Library()
 
 
@@ -41,6 +42,18 @@ class IfProductHasSamples(template.Node):
 @register.tag
 def ifproducthassamples(parser, token):
     return IfProductHasSamples.handle_token(parser, token)
+
+
+class IsSampleNode(template.Node):
+    def render(self, context):
+        product = context["product"]
+        context["is_sample"] = is_sample_util(product)
+        return ''
+
+
+@register.tag
+def is_sample(parser, token):
+    return IsSampleNode()
 
 
 class ProductSamplesNode(template.Node):

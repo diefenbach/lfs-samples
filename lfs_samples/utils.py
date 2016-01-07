@@ -1,5 +1,6 @@
 from . models import ProductSamplesRelation
 from . models import ActivityState
+from . models import IsSample
 
 
 def get_samples(product):
@@ -31,6 +32,18 @@ def has_active_samples(product_or_id):
         else:
             ActivityState.objects.get(product=product_or_id)
     except ActivityState.DoesNotExist:
+        return False
+    else:
+        return True
+
+
+def is_sample(product_or_id):
+    try:
+        if isinstance(product_or_id, int):
+            IsSample.objects.get(product_id=product_or_id)
+        else:
+            IsSample.objects.get(product=product_or_id)
+    except IsSample.DoesNotExist:
         return False
     else:
         return True

@@ -1,39 +1,56 @@
 {% load i18n %}
-{% load lfs_manage_tags %}
+{% load lfs_manage_tags lfs_samples_tags %}
 
-<h2 class="heading-first">{% trans 'Samples' %}</h2>
+<div id="samples">
+  <h2 class="heading-first">{% trans 'Samples' %}</h2>
 
-{% if product.is_variant %}
-    <form id="samples-update-form"
-          action="{% url 'lfs_manage_update_samples_state' product.id %}"
-          method="post">
-        <input type="checkbox"
-               name="samples_activity_state"
-               {% if has_active_samples %}checked="checked"{% endif %} />
-        <label for="active_samples">
-            {% trans 'Active samples' %}
-        </label>
-        <input class="ajax-save-button"
-               type="submit" value="{% trans "Update" %}" />
-    </form>
-    <div class="separator"></div>
-{% endif %}
+  <form id="samples-update-form"
+        action="{% url 'lfs_manage_update_is_sample' product.id %}"
+        method="post">
+      <input type="checkbox"
+             name="is_sample"
+             {% if is_sample %}checked="checked"{% endif %} />
+      <label for="is_sample">
+          {% trans 'Is sample' %}
+      </label>
+      <input class="ajax-save-button"
+             type="submit" value="{% trans "Update" %}" />
+  </form>
 
-<form id="filter-samples-form"
-      action="{% url 'lfs_manage_samples_inline' product.id %}"
-      onsubmit="return false">
-    <input class="refresh-on-keyup" type="text" name="filter"/>
+  {% if not product.is_sample.exists %}
+      <hr style="margin: 20px 0" />
+      {% if product.is_variant %}
+          <form id="samples-update-form"
+                action="{% url 'lfs_manage_update_samples_state' product.id %}"
+                method="post">
+              <input type="checkbox"
+                     name="samples_activity_state"
+                     {% if has_active_samples %}checked="checked"{% endif %} />
+              <label for="active_samples">
+                  {% trans 'Active samples' %}
+              </label>
+              <input class="ajax-save-button"
+                     type="submit" value="{% trans "Update" %}" />
+          </form>
+          <div class="separator"></div>
+      {% endif %}
 
-    {% category_filter "refresh-on-change" "samples_category_filter" %}
+      <form id="filter-samples-form"
+            action="{% url 'lfs_manage_samples_inline' product.id %}"
+            onsubmit="return false">
+          <input class="refresh-on-keyup" type="text" name="filter"/>
 
-    <select class="refresh-on-change"
-            name="samples-amount">
-        {% for option in amount_options %}
-            <option {% if option.selected %}selected="selected"{% endif %}
-                    value="{{ option.value }}">{{ option.value }}</option>
-        {% endfor %}
-    </select>
+          {% category_filter "refresh-on-change" "samples_category_filter" %}
 
-</form>
+          <select class="refresh-on-change"
+                  name="samples-amount">
+              {% for option in amount_options %}
+                  <option {% if option.selected %}selected="selected"{% endif %}
+                          value="{{ option.value }}">{{ option.value }}</option>
+              {% endfor %}
+          </select>
 
-{{ samples_inline }}
+      </form>
+      {{ samples_inline }}
+  {% endif %}
+</div>

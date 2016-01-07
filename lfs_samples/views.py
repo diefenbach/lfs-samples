@@ -20,9 +20,11 @@ from lfs.catalog.settings import VARIANT
 from lfs.core.utils import LazyEncoder
 
 from . models import ActivityState
+from . models import IsSample
 from . models import ProductSamplesRelation
 from . utils import add_sample
 from . utils import has_active_samples
+from . utils import is_sample
 from . utils import remove_sample
 
 
@@ -55,6 +57,7 @@ def manage_samples(request, product_id):
         "amount_options": amount_options,
         "samples_inline": samples_inline,
         "has_active_samples": has_active_samples(product),
+        "is_sample": is_sample(product),
     }))
 
     return mark_safe(result)
@@ -119,10 +122,15 @@ def manage_samples_inline(request, product_id, as_string=False, template_name="l
             categories.extend(category.get_all_children())
             filters &= Q(categories__in=categories)
 
-    products = Product.objects.filter(filters).exclude(pk__in=samples_ids).exclude(pk=product.pk)
+    products = []
+    for temp in Product.objects.filter(filters).exclude(pk__in=samples_ids).exclude(pk=product.pk):
+        if temp.is_sample.exists():
+            products.append(temp)
+
     paginator = Paginator(products, s["samples-amount"])
 
-    total = products.count()
+    total = len(products)
+
     try:
         page = paginator.page(page)
     except (EmptyPage, PageNotAnInteger):
@@ -230,7 +238,34 @@ def update_samples_state(request, product_id):
 
     result = json.dumps({
         "html": html,
-        "message": _(u"Samples have been updated.")
+        "message": _(u"Sample has been updated.")
+    }, cls=LazyEncoder)
+
+    return HttpResponse(result, content_type='application/json')
+
+
+@permission_required("core.manage_shop")
+def update_is_sample(request, product_id):
+    """Updates is sample state.
+    """
+    product = Product.objects.get(pk=product_id)
+    if request.POST.get("is_sample"):
+        IsSample.objects.get_or_create(product=product)
+    else:
+        try:
+            activity_state = IsSample.objects.get(product=product)
+        except IsSample.DoesNotExist:
+            pass
+        else:
+            activity_state.delete()
+
+    product.save()
+
+    html = [["#samples", manage_samples(request, product_id)]]
+
+    result = json.dumps({
+        "html": html,
+        "message": _(u"Sample has been updated.")
     }, cls=LazyEncoder)
 
     return HttpResponse(result, content_type='application/json')

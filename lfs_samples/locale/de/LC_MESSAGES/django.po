@@ -3,12 +3,11 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-01-06 13:06+0100\n"
+"POT-Creation-Date: 2016-01-07 11:41+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,34 +17,52 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: models.py:18
+#: models.py:28
 msgid "Sample"
 msgstr "Muster"
 
-#: templates/lfs_samples/samples.html:4
+#: templates/lfs_samples/samples.html:5
 msgid "Samples"
 msgstr "Muster"
 
 #: templates/lfs_samples/samples.html:14
+#| msgid "Sample"
+msgid "Is sample"
+msgstr "Ist Muster"
+
+#: templates/lfs_samples/samples.html:30
 msgid "Active samples"
+msgstr "Muster aktiv"
+
+#: templates/lfs_samples/samples_inline.html:33
+msgid "Selectable Samples"
+msgstr "Auswählbare Muster"
+
+#: templates/lfs_samples/samples_inline.html:53
+#: templates/lfs_samples/samples_inline.html:116
+msgid "Active"
 msgstr "Muster aktiv"
 
 #: templates/lfs_samples/samples_inline.html:92
 msgid "Add to samples"
 msgstr "Zu Muster hinzufügen"
 
+#: templates/lfs_samples/samples_inline.html:97
+msgid "Selected Samples"
+msgstr "Ausgewählte Muster"
+
 #: templates/lfs_samples/samples_inline.html:156
 msgid "Remove from samples"
 msgstr "Von Muster entfernen"
 
-#: views.py:180
+#: views.py:187
 msgid "Samples have been added."
 msgstr "Muster wurden hinzugefügt."
 
-#: views.py:207
+#: views.py:214
 msgid "Samples have been removed."
 msgstr "Muster wurden entfernt."
 
-#: views.py:234
-msgid "Samples have been updated."
+#: views.py:241 views.py:268
+msgid "Sample has been updated."
 msgstr "Muster wurde aktualisiert."

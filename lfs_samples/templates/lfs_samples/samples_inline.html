@@ -30,7 +30,7 @@
     <table class="lfs-manage-table" style="margin-top:20px">
         <tr>
             <td width="50%">
-                <h2>{% trans "Selectable Products" %}</h2>
+                <h2>{% trans "Selectable Samples" %}</h2>
                 <form id="add-samples-form"
                       action="{% url 'lfs_manage_add_samples' product.id %}"
                       method="post">
@@ -94,7 +94,7 @@
                 </form>
             </td>
             <td width="50%">
-                <h2>{% trans "Selected Products" %}</h2>
+                <h2>{% trans "Selected Samples" %}</h2>
                 <form id="remove-samples-form"
                       action="{% url 'lfs_manage_remove_samples' product.id %}"
                       method="post">
