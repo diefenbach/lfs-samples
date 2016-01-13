@@ -5,7 +5,7 @@
   <h2 class="heading-first">{% trans 'Samples' %}</h2>
 
   <form id="samples-update-form"
-        action="{% url 'lfs_manage_update_is_sample' product.id %}"
+        action="{% url lfs_manage_update_is_sample product.id %}"
         method="post">
       <input type="checkbox"
              name="is_sample"
@@ -21,7 +21,7 @@
       <hr style="margin: 20px 0" />
       {% if product.is_variant %}
           <form id="samples-update-form"
-                action="{% url 'lfs_manage_update_samples_state' product.id %}"
+                action="{% url lfs_manage_update_samples_state product.id %}"
                 method="post">
               <input type="checkbox"
                      name="samples_activity_state"
@@ -34,23 +34,6 @@
           </form>
           <div class="separator"></div>
       {% endif %}
-
-      <form id="filter-samples-form"
-            action="{% url 'lfs_manage_samples_inline' product.id %}"
-            onsubmit="return false">
-          <input class="refresh-on-keyup" type="text" name="filter"/>
-
-          {% category_filter "refresh-on-change" "samples_category_filter" %}
-
-          <select class="refresh-on-change"
-                  name="samples-amount">
-              {% for option in amount_options %}
-                  <option {% if option.selected %}selected="selected"{% endif %}
-                          value="{{ option.value }}">{{ option.value }}</option>
-              {% endfor %}
-          </select>
-
-      </form>
       {{ samples_inline }}
   {% endif %}
 </div>

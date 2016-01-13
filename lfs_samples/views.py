@@ -39,7 +39,7 @@ def get_parameter(r, p, default=None, with_session=True):
 @permission_required("core.manage_shop")
 def manage_samples(request, product_id):
     product = Product.objects.get(pk=product_id)
-    samples = ProductSamplesRelation.objects.filter(product_id=product_id)
+    samples = ProductSamplesRelation.objects.filter(product__id=product_id)
 
     # amount options
     amount_options = []
@@ -71,7 +71,7 @@ def manage_samples_inline(request, product_id, as_string=False, template_name="l
 
     samples = []
     samples_ids = []
-    for psr in ProductSamplesRelation.objects.filter(product_id=product_id):
+    for psr in ProductSamplesRelation.objects.filter(product__id=product_id):
         samples.append(psr.sample)
         samples_ids.append(psr.sample.id)
 
@@ -98,11 +98,7 @@ def manage_samples_inline(request, product_id, as_string=False, template_name="l
     s["samples_page"] = page
     s["filter"] = filter_
     s["samples_category_filter"] = category_filter
-
-    try:
-        s["samples-amount"] = int(get_parameter(request, "samples-amount"))
-    except TypeError:
-        s["samples-amount"] = 25
+    s["samples-amount"] = 100
 
     filters = Q()
     if filter_:
@@ -184,7 +180,7 @@ def add_samples(request, product_id):
         "message": _(u"Samples have been added.")
     }, cls=LazyEncoder)
 
-    return HttpResponse(result, content_type='application/json')
+    return HttpResponse(result)
 
 
 @permission_required("core.manage_shop")
@@ -211,7 +207,7 @@ def remove_samples(request, product_id):
         "message": _(u"Samples have been removed.")
     }, cls=LazyEncoder)
 
-    return HttpResponse(result, content_type='application/json')
+    return HttpResponse(result)
 
 
 @permission_required("core.manage_shop")
@@ -238,7 +234,7 @@ def update_samples_state(request, product_id):
         "message": _(u"Sample has been updated.")
     }, cls=LazyEncoder)
 
-    return HttpResponse(result, content_type='application/json')
+    return HttpResponse(result)
 
 
 @permission_required("core.manage_shop")
@@ -265,4 +261,4 @@ def update_is_sample(request, product_id):
         "message": _(u"Sample has been updated.")
     }, cls=LazyEncoder)
 
-    return HttpResponse(result, content_type='application/json')
+    return HttpResponse(result)

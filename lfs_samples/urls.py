@@ -1,4 +1,4 @@
-from django.conf.urls import patterns, url
+from django.conf.urls.defaults import patterns, url
 
 urlpatterns = patterns('lfs_samples.views',
     url(r'^samples-tab/(?P<product_id>\d*)$', "load_tab", name="lfs_manage_samples_tab"),

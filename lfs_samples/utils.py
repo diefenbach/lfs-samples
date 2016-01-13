@@ -22,7 +22,7 @@ def add_sample(product, sample_id):
 
 
 def remove_sample(product, sample_id):
-    ProductSamplesRelation.objects.filter(product=product, sample_id=sample_id).delete()
+    ProductSamplesRelation.objects.filter(product=product, sample__id=sample_id).delete()
 
 
 def has_active_samples(product_or_id):
