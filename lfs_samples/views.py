@@ -1,18 +1,15 @@
 import json
 
-# django imports
 from django.contrib.auth.decorators import permission_required
 from django.core.paginator import EmptyPage
 from django.core.paginator import Paginator
 from django.core.paginator import PageNotAnInteger
 from django.db.models import Q
 from django.http import HttpResponse
-from django.template import RequestContext
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
-# lfs.imports
 from lfs.caching.utils import lfs_get_object_or_404
 from lfs.catalog.models import Category
 from lfs.catalog.models import Product
@@ -51,14 +48,14 @@ def manage_samples(request, product_id):
 
     samples_inline = manage_samples_inline(request, product_id, as_string=True)
 
-    result = render_to_string("lfs_samples/samples.html", RequestContext(request, {
+    result = render_to_string("lfs_samples/samples.html", request=request, context={
         "product": product,
         "samples": samples,
         "amount_options": amount_options,
         "samples_inline": samples_inline,
         "has_active_samples": has_active_samples(product),
         "is_sample": is_sample(product),
-    }))
+    })
 
     return mark_safe(result)
 
@@ -133,14 +130,14 @@ def manage_samples_inline(request, product_id, as_string=False, template_name="l
     except (EmptyPage, PageNotAnInteger):
         page = 0
 
-    result = render_to_string(template_name, RequestContext(request, {
+    result = render_to_string(template_name, request=request, context={
         "product": product,
         "samples": samples,
         "total": total,
         "page": page,
         "paginator": paginator,
         "filter": filter_,
-    }))
+    })
 
     if as_string:
         return result
