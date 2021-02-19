@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
             name='IsSample',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('product', models.ForeignKey(related_name='is_sample', verbose_name='Product', to='catalog.Product')),
+                ('product', models.ForeignKey(related_name='is_sample', verbose_name='Product', to='catalog.Product', on_delete=models.CASCADE)),
             ],
         ),
     ]

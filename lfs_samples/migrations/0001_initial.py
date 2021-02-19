@@ -11,15 +11,15 @@ class Migration(migrations.Migration):
             name='ActivityState',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('product', models.ForeignKey(related_name='active_samples', verbose_name='Product', to='catalog.Product')),
+                ('product', models.ForeignKey(related_name='active_samples', verbose_name='Product', to='catalog.Product', on_delete=models.CASCADE)),
             ],
         ),
         migrations.CreateModel(
             name='ProductSamplesRelation',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('product', models.ForeignKey(related_name='products', verbose_name='Product', to='catalog.Product')),
-                ('sample', models.ForeignKey(related_name='samples', verbose_name='Sample', to='catalog.Product')),
+                ('product', models.ForeignKey(related_name='products', verbose_name='Product', to='catalog.Product', on_delete=models.CASCADE)),
+                ('sample', models.ForeignKey(related_name='samples', verbose_name='Sample', to='catalog.Product', on_delete=models.CASCADE)),
             ],
         ),
     ]
