@@ -1,6 +1,6 @@
-from . models import ProductSamplesRelation
-from . models import ActivityState
-from . models import IsSample
+from .models import ProductSamplesRelation
+from .models import ActivityState
+from .models import IsSample
 
 
 def get_samples(product):

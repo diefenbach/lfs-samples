@@ -1,9 +1,10 @@
 from django import template
 from django.template import Library
 
-from .. utils import get_samples
-from .. utils import has_samples
-from .. utils import is_sample as is_sample_util
+from ..utils import get_samples
+from ..utils import has_samples
+from ..utils import is_sample as is_sample_util
+
 register = Library()
 
 
@@ -12,12 +13,11 @@ class IfProductHasSamples(template.Node):
     def handle_token(cls, parser, token):
         bits = token.contents.split()
         if len(bits) != 1:
-            raise template.TemplateSyntaxError(
-                "'%s' tag takes one argument" % bits[0])
-        end_tag = 'endifproducthassamples'
-        nodelist_true = parser.parse(('else', end_tag))
+            raise template.TemplateSyntaxError("'%s' tag takes one argument" % bits[0])
+        end_tag = "endifproducthassamples"
+        nodelist_true = parser.parse(("else", end_tag))
         token = parser.next_token()
-        if token.contents == 'else':  # there is an 'else' clause in the tag
+        if token.contents == "else":  # there is an 'else' clause in the tag
             nodelist_false = parser.parse((end_tag,))
             parser.delete_first_token()
         else:
@@ -48,7 +48,7 @@ class IsSampleNode(template.Node):
     def render(self, context):
         product = context["product"]
         context["is_sample"] = is_sample_util(product)
-        return ''
+        return ""
 
 
 @register.tag
@@ -60,7 +60,7 @@ class ProductSamplesNode(template.Node):
     def render(self, context):
         product = context["product"]
         context["product_samples"] = get_samples(product=product)
-        return ''
+        return ""
 
 
 @register.tag
