@@ -8,7 +8,7 @@ from django.db.models import Q
 from django.http import HttpResponse
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from lfs.caching.utils import lfs_get_object_or_404
 from lfs.catalog.models import Category
@@ -16,13 +16,13 @@ from lfs.catalog.models import Product
 from lfs.catalog.settings import VARIANT
 from lfs.core.utils import LazyEncoder
 
-from . models import ActivityState
-from . models import IsSample
-from . models import ProductSamplesRelation
-from . utils import add_sample
-from . utils import has_active_samples
-from . utils import is_sample
-from . utils import remove_sample
+from .models import ActivityState
+from .models import IsSample
+from .models import ProductSamplesRelation
+from .utils import add_sample
+from .utils import has_active_samples
+from .utils import is_sample
+from .utils import remove_sample
 
 
 def get_parameter(r, p, default=None, with_session=True):
@@ -41,29 +41,29 @@ def manage_samples(request, product_id):
     # amount options
     amount_options = []
     for value in (10, 25, 50, 100):
-        amount_options.append({
-            "value": value,
-            "selected": value == request.session.get("samples-amount")
-        })
+        amount_options.append({"value": value, "selected": value == request.session.get("samples-amount")})
 
     samples_inline = manage_samples_inline(request, product_id, as_string=True)
 
-    result = render_to_string("lfs_samples/samples.html", request=request, context={
-        "product": product,
-        "samples": samples,
-        "amount_options": amount_options,
-        "samples_inline": samples_inline,
-        "has_active_samples": has_active_samples(product),
-        "is_sample": is_sample(product),
-    })
+    result = render_to_string(
+        "lfs_samples/samples.html",
+        request=request,
+        context={
+            "product": product,
+            "samples": samples,
+            "amount_options": amount_options,
+            "samples_inline": samples_inline,
+            "has_active_samples": has_active_samples(product),
+            "is_sample": is_sample(product),
+        },
+    )
 
     return mark_safe(result)
 
 
 @permission_required("core.manage_shop")
 def manage_samples_inline(request, product_id, as_string=False, template_name="lfs_samples/samples_inline.html"):
-    """View which shows all samples for the product with the passed id.
-    """
+    """View which shows all samples for the product with the passed id."""
     product = Product.objects.get(pk=product_id)
 
     samples = []
@@ -103,9 +103,9 @@ def manage_samples_inline(request, product_id, as_string=False, template_name="l
 
     filters = Q()
     if filter_:
-        filters &= (Q(name__icontains=filter_) | Q(sku__icontains=filter_))
-        filters |= (Q(sub_type=VARIANT) & Q(active_sku=False) & Q(parent__sku__icontains=filter_))
-        filters |= (Q(sub_type=VARIANT) & Q(active_name=False) & Q(parent__name__icontains=filter_))
+        filters &= Q(name__icontains=filter_) | Q(sku__icontains=filter_)
+        filters |= Q(sub_type=VARIANT) & Q(active_sku=False) & Q(parent__sku__icontains=filter_)
+        filters |= Q(sub_type=VARIANT) & Q(active_name=False) & Q(parent__name__icontains=filter_)
 
     if category_filter:
         if category_filter == "None":
@@ -119,7 +119,12 @@ def manage_samples_inline(request, product_id, as_string=False, template_name="l
             categories.extend(category.get_all_children())
             filters &= Q(categories__in=categories)
 
-    products = Product.objects.filter(filters).exclude(pk__in=samples_ids).exclude(pk=product.pk).exclude(is_sample__isnull=True)
+    products = (
+        Product.objects.filter(filters)
+        .exclude(pk__in=samples_ids)
+        .exclude(pk=product.pk)
+        .exclude(is_sample__isnull=True)
+    )
 
     paginator = Paginator(products, s["samples-amount"])
 
@@ -130,37 +135,43 @@ def manage_samples_inline(request, product_id, as_string=False, template_name="l
     except (EmptyPage, PageNotAnInteger):
         page = 0
 
-    result = render_to_string(template_name, request=request, context={
-        "product": product,
-        "samples": samples,
-        "total": total,
-        "page": page,
-        "paginator": paginator,
-        "filter": filter_,
-    })
+    result = render_to_string(
+        template_name,
+        request=request,
+        context={
+            "product": product,
+            "samples": samples,
+            "total": total,
+            "page": page,
+            "paginator": paginator,
+            "filter": filter_,
+        },
+    )
 
     if as_string:
         return result
     else:
         return HttpResponse(
-            json.dumps({
-                "html": [["#samples-inline", result]],
-            }), content_type='application/json')
+            json.dumps(
+                {
+                    "html": [["#samples-inline", result]],
+                }
+            ),
+            content_type="application/json",
+        )
 
 
 # Actions
 @permission_required("core.manage_shop")
 def load_tab(request, product_id):
-    """
-    """
+    """ """
     samples = manage_samples(request, product_id)
     return HttpResponse(samples)
 
 
 @permission_required("core.manage_shop")
 def add_samples(request, product_id):
-    """Adds passed samples (by request body) to product with passed id.
-    """
+    """Adds passed samples (by request body) to product with passed id."""
     parent_product = Product.objects.get(pk=product_id)
 
     for temp_id in request.POST.keys():
@@ -176,18 +187,14 @@ def add_samples(request, product_id):
 
     html = [["#samples-inline", manage_samples_inline(request, product_id, as_string=True)]]
 
-    result = json.dumps({
-        "html": html,
-        "message": _(u"Samples have been added.")
-    }, cls=LazyEncoder)
+    result = json.dumps({"html": html, "message": _("Samples have been added.")}, cls=LazyEncoder)
 
-    return HttpResponse(result, content_type='application/json')
+    return HttpResponse(result, content_type="application/json")
 
 
 @permission_required("core.manage_shop")
 def remove_samples(request, product_id):
-    """Removes passed samples from product with passed id.
-    """
+    """Removes passed samples from product with passed id."""
     parent_product = Product.objects.get(pk=product_id)
 
     for temp_id in request.POST.keys():
@@ -203,18 +210,14 @@ def remove_samples(request, product_id):
 
     html = [["#samples-inline", manage_samples_inline(request, product_id, as_string=True)]]
 
-    result = json.dumps({
-        "html": html,
-        "message": _(u"Samples have been removed.")
-    }, cls=LazyEncoder)
+    result = json.dumps({"html": html, "message": _("Samples have been removed.")}, cls=LazyEncoder)
 
-    return HttpResponse(result, content_type='application/json')
+    return HttpResponse(result, content_type="application/json")
 
 
 @permission_required("core.manage_shop")
 def update_samples_state(request, product_id):
-    """Updates samples activity state for variants.
-    """
+    """Updates samples activity state for variants."""
     product = Product.objects.get(pk=product_id)
     if request.POST.get("samples_activity_state"):
         ActivityState.objects.get_or_create(product=product)
@@ -230,18 +233,14 @@ def update_samples_state(request, product_id):
 
     html = [["#samples-inline", manage_samples_inline(request, product_id, as_string=True)]]
 
-    result = json.dumps({
-        "html": html,
-        "message": _(u"Sample has been updated.")
-    }, cls=LazyEncoder)
+    result = json.dumps({"html": html, "message": _("Sample has been updated.")}, cls=LazyEncoder)
 
-    return HttpResponse(result, content_type='application/json')
+    return HttpResponse(result, content_type="application/json")
 
 
 @permission_required("core.manage_shop")
 def update_is_sample(request, product_id):
-    """Updates is sample state.
-    """
+    """Updates is sample state."""
     product = Product.objects.get(pk=product_id)
     if request.POST.get("is_sample"):
         IsSample.objects.get_or_create(product=product)
@@ -257,9 +256,6 @@ def update_is_sample(request, product_id):
 
     html = [["#samples", manage_samples(request, product_id)]]
 
-    result = json.dumps({
-        "html": html,
-        "message": _(u"Sample has been updated.")
-    }, cls=LazyEncoder)
+    result = json.dumps({"html": html, "message": _("Sample has been updated.")}, cls=LazyEncoder)
 
-    return HttpResponse(result, content_type='application/json')
+    return HttpResponse(result, content_type="application/json")
