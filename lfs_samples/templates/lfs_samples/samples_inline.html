@@ -58,7 +58,7 @@
                                                class="select-samples" />
                                     </td>
                                     <td>
-                                        <a href="{% url 'lfs_manage_product' product.id %}">
+                                        <a href="{% url 'lfs_manage_product_data' product.id %}">
                                             {{ product.get_name }}
                                         </a>
                                         <div class="product-properties-info">
@@ -122,7 +122,7 @@
                                                class="select-selected-samples" />
                                     </td>
                                     <td>
-                                        <a href="{% url 'lfs_manage_product' sample.id %}">
+                                        <a href="{% url 'lfs_manage_product_data' sample.id %}">
                                             {{ sample.get_name }}
                                         </a>
                                         <div class="product-properties-info">
