@@ -1,7 +1,8 @@
-from django.urls import re_path
+from django.urls import path, re_path
 from . import views
 
 urlpatterns = [
+    path("product/<int:id>/samples/", views.ProductSamplesView.as_view(), name="lfs_manage_product_samples"),
     re_path(r"^samples-tab/(?P<product_id>\d*)$", views.load_tab, name="lfs_manage_samples_tab"),
     re_path(r"^samples/(?P<product_id>\d*)$", views.manage_samples, name="lfs_manage_samples"),
     re_path(r"^samples-inline/(?P<product_id>\d*)$", views.manage_samples_inline, name="lfs_manage_samples_inline"),

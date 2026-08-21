@@ -1,20 +1,26 @@
 import json
 
+from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.paginator import EmptyPage
 from django.core.paginator import Paginator
 from django.core.paginator import PageNotAnInteger
 from django.db.models import Q
-from django.http import HttpResponse
+from django.http import HttpRequest, HttpResponse
 from django.template.loader import render_to_string
+from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
+from django.views.generic import TemplateView
 
 from lfs.caching.utils import lfs_get_object_or_404
 from lfs.catalog.models import Category
 from lfs.catalog.models import Product
 from lfs.catalog.settings import VARIANT
+from lfs.core.signals import product_changed
 from lfs.core.utils import LazyEncoder
+from lfs.manage.products.views import ProductTabMixin
 
 from .models import ActivityState
 from .models import IsSample
@@ -259,3 +265,124 @@ def update_is_sample(request, product_id):
     result = json.dumps({"html": html, "message": _("Sample has been updated.")}, cls=LazyEncoder)
 
     return HttpResponse(result, content_type="application/json")
+
+
+class ProductSamplesView(PermissionRequiredMixin, ProductTabMixin, TemplateView):
+    """Samples tab for a Product (Bootstrap/HTMX shell)."""
+
+    tab_name = "samples"
+    permission_required = "core.manage_shop"
+    page_sizes = [10, 25, 50, 100]
+
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        product = self.get_product()
+        action = request.POST.get("action")
+
+        if action == "update_is_sample":
+            if request.POST.get("is_sample"):
+                IsSample.objects.get_or_create(product=product)
+            else:
+                IsSample.objects.filter(product=product).delete()
+            product.save()
+            self._success(_("Sample has been updated."))
+            return self.get(request, *args, **kwargs)
+
+        if action == "update_samples_state":
+            if request.POST.get("samples_activity_state"):
+                ActivityState.objects.get_or_create(product=product)
+            else:
+                ActivityState.objects.filter(product=product).delete()
+            product.save()
+            self._success(_("Sample has been updated."))
+            return self.get(request, *args, **kwargs)
+
+        if action == "add":
+            for key in request.POST.keys():
+                if key.startswith("product-"):
+                    add_sample(product, key.split("-", 1)[1])
+            product.save()
+            product_changed.send(product)
+            self._success(_("Samples have been added."))
+            return self.get(request, *args, **kwargs)
+
+        if action == "remove":
+            for key in request.POST.keys():
+                if key.startswith("sample-"):
+                    remove_sample(product=product, sample_id=key.split("-", 1)[1])
+            product.save()
+            product_changed.send(product)
+            self._success(_("Samples have been removed."))
+            return self.get(request, *args, **kwargs)
+
+        return self.get(request, *args, **kwargs)
+
+    def _success(self, message) -> None:
+        # For HTMX requests, don't show success message to avoid page disruption
+        if not self.request.headers.get("HX-Request"):
+            messages.success(self.request, message)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        product = self.get_product()
+
+        # Support HTMX filter/pagination via GET as well as add/remove via POST
+        request_data = (
+            self.request.POST
+            if self.request.method == "POST" and self.request.POST.get("keep-filters")
+            else self.request.GET
+        )
+
+        filter_q = request_data.get("filter", "").strip()
+        category_filter = request_data.get("category_filter", "").strip()
+        try:
+            amount = int(request_data.get("amount", 25))
+        except (TypeError, ValueError):
+            amount = 25
+        page_num = request_data.get("page", 1)
+
+        # Currently assigned samples
+        samples = [psr.sample for psr in ProductSamplesRelation.objects.filter(product=product).select_related("sample")]
+        sample_ids = [sample.id for sample in samples]
+
+        # Selectable products: only products which are flagged as sample themselves
+        filters = Q()
+        if filter_q:
+            filters &= Q(name__icontains=filter_q) | Q(sku__icontains=filter_q)
+
+        if category_filter and category_filter not in ("All", "None"):
+            category = lfs_get_object_or_404(Category, pk=category_filter)
+            categories = [category]
+            categories.extend(category.get_all_children())
+            filters &= Q(categories__in=categories)
+        elif category_filter == "None":
+            filters &= Q(categories=None)
+
+        available_qs = (
+            Product.objects.filter(filters)
+            .exclude(is_sample__isnull=True)
+            .exclude(pk=product.pk)
+            .exclude(pk__in=sample_ids)
+            .distinct()
+            .order_by("name")
+        )
+        paginator = Paginator(available_qs, amount)
+        try:
+            available_page = paginator.page(page_num)
+        except (EmptyPage, PageNotAnInteger):
+            available_page = paginator.page(1)
+
+        ctx.update(
+            {
+                "samples": samples,
+                "available_page": available_page,
+                "available_paginator": paginator,
+                "filter": filter_q,
+                "category_filter": category_filter,
+                "categories": Category.objects.all(),
+                "amount": amount,
+                "page_sizes": self.page_sizes,
+                "is_sample": is_sample(product),
+                "has_active_samples": has_active_samples(product),
+            }
+        )
+        return ctx

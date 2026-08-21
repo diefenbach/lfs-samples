@@ -1,0 +1,103 @@
+{% load i18n static %}
+
+<div class="tab-pane fade show active" id="samples-content" role="tabpanel" aria-labelledby="samples-tab">
+    <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
+        <!-- Is sample toggle -->
+        <form method="post"
+              class="d-flex align-items-center gap-2 mb-0"
+              hx-post="{% url 'lfs_manage_product_samples' product.id %}"
+              hx-target="#samples-content"
+              hx-select="#samples-content"
+              hx-swap="outerHTML">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_is_sample">
+            <div class="form-check mb-0">
+                <input class="form-check-input" type="checkbox" id="isSample" name="is_sample" {% if is_sample %}checked{% endif %}>
+                <label class="form-check-label" for="isSample">{% trans "Is sample" %}</label>
+            </div>
+            <button type="submit" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-check-lg me-1"></i> {% trans 'Save' %}
+            </button>
+        </form>
+
+        {% if not is_sample and product.is_variant %}
+            <!-- Active samples toggle (variants only) -->
+            <form method="post"
+                  class="d-flex align-items-center gap-2 mb-0"
+                  hx-post="{% url 'lfs_manage_product_samples' product.id %}"
+                  hx-target="#samples-content"
+                  hx-select="#samples-content"
+                  hx-swap="outerHTML">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_samples_state">
+                <div class="form-check mb-0">
+                    <input class="form-check-input" type="checkbox" id="activeSamples" name="samples_activity_state" {% if has_active_samples %}checked{% endif %}>
+                    <label class="form-check-label" for="activeSamples">{% trans "Active samples" %}</label>
+                </div>
+                <button type="submit" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-check-lg me-1"></i> {% trans 'Save' %}
+                </button>
+            </form>
+        {% endif %}
+    </div>
+
+    {% if not is_sample %}
+        <div class="d-flex align-items-center gap-2 mb-4">
+            <!-- Filter Controls -->
+            <div class="input-group">
+                <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                <input type="text"
+                       class="form-control"
+                       placeholder="{% trans 'Search products...' %}"
+                       name="filter"
+                       value="{{ filter }}"
+                       hx-get="{% url 'lfs_manage_product_samples' product.id %}"
+                       hx-target="#samples-tables"
+                       hx-select="#samples-tables"
+                       hx-trigger="input changed delay:300ms, keyup[key=='Escape'] delay:100ms"
+                       hx-include="[name='amount'],[name='category_filter']"
+                       hx-push-url="true">
+            </div>
+
+            <select name="category_filter"
+                    class="form-select"
+                    style="width: 220px;"
+                    hx-get="{% url 'lfs_manage_product_samples' product.id %}"
+                    hx-target="#samples-tables"
+                    hx-select="#samples-tables"
+                    hx-include="[name='filter'],[name='amount']"
+                    hx-push-url="true">
+                <option value="" {% if not category_filter %}selected{% endif %}>{% trans "All categories" %}</option>
+                <option value="None" {% if category_filter == "None" %}selected{% endif %}>{% trans "Without category" %}</option>
+                {% for category in categories %}
+                    <option value="{{ category.id }}" {% if category_filter == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+                {% endfor %}
+            </select>
+
+            <select name="amount"
+                    class="form-select"
+                    style="width: 120px;"
+                    hx-get="{% url 'lfs_manage_product_samples' product.id %}"
+                    hx-target="#samples-tables"
+                    hx-select="#samples-tables"
+                    hx-include="[name='filter'],[name='category_filter']"
+                    hx-push-url="true">
+                {% for n in page_sizes %}
+                    <option value="{{ n }}" {% if amount == n %}selected{% endif %}>{{ n }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div id="samples-tables" class="row g-4">
+            <!-- Selectable Samples (Left Column) -->
+            <div class="col-md-6">
+                {% include 'manage/products/tabs/_available_samples.html' %}
+            </div>
+
+            <!-- Assigned Samples (Right Column) -->
+            <div class="col-md-6">
+                {% include 'manage/products/tabs/_assigned_samples.html' %}
+            </div>
+        </div>
+    {% endif %}
+</div>
