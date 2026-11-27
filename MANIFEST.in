@@ -1,5 +1,4 @@
-include README.txt
+include README.md LICENSE.txt
 recursive-include lfs_samples/locale *
-recursive-include lfs_samples/static *
 recursive-include lfs_samples/templates *
 
