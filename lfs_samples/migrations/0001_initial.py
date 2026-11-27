@@ -5,6 +5,11 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+    # The models point to catalog.Product, so the catalog's tables must exist first.
+    dependencies = [
+        ("catalog", "0001_initial"),
+    ]
+
     operations = [
         migrations.CreateModel(
             name="ActivityState",
